@@ -1,1 +1,1 @@
-from .purchase import Purchase
+from .purchases import Purchase

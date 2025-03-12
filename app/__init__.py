@@ -1,13 +1,12 @@
-from app.config import config
 import os
-from flask_sqlalchemy import SQLAlchemy
 from flask import Flask
 from flask_marshmallow import Marshmallow
-from flask_migrate import Migrate
-from app.config.cache_config import cache_config
 from flask_caching import Cache
-
-
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
+from app.Config import config
+from app.Config.cache_config import cache_config
+from flask_cors import CORS
 
 
 db = SQLAlchemy()
@@ -15,21 +14,20 @@ migrate = Migrate()
 ma = Marshmallow()
 cache = Cache()
 
-def create_app() -> None:
+def create_app() -> Flask:
+    
     app_context = os.getenv('FLASK_CONTEXT')
     app = Flask(__name__)
     f = config.factory(app_context if app_context else 'development')
     app.config.from_object(f)
-    
-
     db.init_app(app)
-    migrate.init_app(app, db)
     ma.init_app(app)
+    migrate.init_app(app, db)
     cache.init_app(app, config=cache_config)
+    CORS(app)
 
-    from app.resources import home
-    app.register_blueprint(home, url_prefix='/api/v1')
-    from app.resources import purchase
+    # Register Blueprints
+    from app.Routes.purchase import purchase
     app.register_blueprint(purchase)
     
     
@@ -38,4 +36,3 @@ def create_app() -> None:
         return {"app": app}
     
     return app
-
